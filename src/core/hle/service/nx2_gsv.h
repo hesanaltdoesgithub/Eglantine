@@ -934,6 +934,10 @@ private:
         if (layout.width == 3840 && layout.height == 2160) {
             crop_width = 2560;
             crop_height = 1440;
+        } else if (layout.width == 1920 && layout.height == 1080) {
+            // Handheld: the title renders 1280x720 into its 1080p buffer.
+            crop_width = 1280;
+            crop_height = 720;
         }
         static const u32 env_crop_w = [] {
             const char* v = std::getenv("EDEN_NX2_CROP_WIDTH");
