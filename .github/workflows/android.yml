@@ -2,7 +2,7 @@ name: Android Eglantine APK
 
 on:
   push:
-    branches: [nx2]
+    branches: [nx2-android]
     paths-ignore:
       - '.github/workflows/release-binaries.yml'
       - '**.md'
