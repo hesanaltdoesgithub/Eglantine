@@ -148,7 +148,7 @@ AppLoader_DeconstructedRomDirectory::AppLoader_DeconstructedRomDirectory(FileSys
         name = nacp.GetApplicationName();
     }
 
-    romfs = FindLooseRomFS(file_dir);
+    romfs_dir = file_dir;
 }
 
 AppLoader_DeconstructedRomDirectory::AppLoader_DeconstructedRomDirectory(
@@ -157,7 +157,7 @@ AppLoader_DeconstructedRomDirectory::AppLoader_DeconstructedRomDirectory(
     , dir(std::move(directory))
     , override_update(override_update_)
 {
-    romfs = FindLooseRomFS(dir);
+    romfs_dir = dir;
 }
 
 FileType AppLoader_DeconstructedRomDirectory::IdentifyType(const FileSys::VirtualFile& dir_file) {
@@ -312,6 +312,11 @@ AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirect
 }
 
 ResultStatus AppLoader_DeconstructedRomDirectory::ReadRomFS(FileSys::VirtualFile& out_dir) {
+    // Building a RomFS from a loose romfs/ directory walks every file, so only do it on demand.
+    if (romfs_dir != nullptr) {
+        romfs = FindLooseRomFS(romfs_dir);
+        romfs_dir = nullptr;
+    }
     if (romfs == nullptr) {
         return ResultStatus::ErrorNoRomFS;
     }

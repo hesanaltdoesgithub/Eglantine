@@ -325,7 +325,8 @@ object GameHelper {
                 mains.add(main)
                 return
             }
-            dir.listFiles()?.filter { it.isDirectory }?.forEach { search(it, depth - 1) }
+            dir.listFiles()?.filter { it.isDirectory && !it.name.equals("romfs", true) }
+                ?.forEach { search(it, depth - 1) }
         }
         search(root, 4)
 
