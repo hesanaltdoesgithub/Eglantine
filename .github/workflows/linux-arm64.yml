@@ -1,4 +1,4 @@
-name: Linux arm64 Eglantine AppImage
+name: Linux arm64 AppImage
 
 on:
   push:
