@@ -5,6 +5,7 @@ on:
     branches: [nx2-android]
     paths-ignore:
       - '.github/workflows/release-binaries.yml'
+      - '.github/workflows/linux-arm64.yml'
       - '**.md'
   workflow_dispatch:
 

@@ -1,0 +1,105 @@
+name: Linux arm64 Eglantine AppImage
+
+on:
+  push:
+    branches: [nx2-android]
+    paths-ignore:
+      - 'src/android/**'
+      - '.github/workflows/android.yml'
+      - '**.md'
+  workflow_dispatch:
+
+concurrency:
+  group: eglantine-linux-arm64
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 360
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+      CCACHE_MAXSIZE: 5G
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Free disk space and add swap
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost \
+            /opt/hostedtoolcache/CodeQL /usr/share/swift /usr/local/share/powershell /usr/local/lib/android
+          sudo swapoff -a || true
+          sudo rm -f /mnt/swapfile /swapfile
+          sudo fallocate -l 12G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile
+          df -h / && free -h
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build ccache glslang-tools gcc-14 g++-14 \
+            qt6-base-dev qt6-base-private-dev libqt6charts6-dev libqt6svg6-dev qt6-tools-dev \
+            qt6-wayland libgl-dev libvulkan-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxss-dev libwayland-dev libxkbcommon-dev libdbus-1-dev \
+            libpulse-dev libasound2-dev libudev-dev libusb-1.0-0-dev nasm patchelf file \
+            libfuse2t64 desktop-file-utils libdrm-dev libgbm-dev libegl-dev libva-dev libvdpau-dev \
+            libxrender-dev libxfixes-dev libxinerama-dev libxtst-dev libxcb1-dev libxcb-xkb-dev \
+            libxcb-randr0-dev libxcb-shm0-dev libxcb-xfixes0-dev libsndio-dev libjack-jackd2-dev \
+            libpipewire-0.3-dev libdecor-0-dev libibus-1.0-dev pkg-config \
+            libavcodec-dev libavutil-dev libswscale-dev libavfilter-dev
+          pip install --break-system-packages "cmake>=3.31,<4"
+          cmake --version
+
+      - uses: actions/cache/restore@v4
+        with:
+          path: .ccache
+          key: ccache-eglantine-linux-arm64-${{ github.sha }}
+          restore-keys: ccache-eglantine-linux-arm64-
+
+      - name: Build
+        run: |
+          set -o pipefail
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr \
+            -DCMAKE_C_COMPILER=gcc-14 -DCMAKE_CXX_COMPILER=g++-14 \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DYUZU_USE_CPM=ON -DCPMUTIL_FORCE_BUNDLED=ON \
+            -DYUZU_USE_BUNDLED_FFMPEG=OFF -DYUZU_USE_BUNDLED_SDL3=ON -DYUZU_CMD=OFF \
+            -DENABLE_QT=ON -DENABLE_WERROR=OFF -DYUZU_TESTS=OFF -DBUILD_TESTING=OFF \
+            -DDYNARMIC_TESTS=OFF -DYUZU_ROOM_STANDALONE=OFF 2>&1 | tee build.log
+          cmake --build build 2>&1 | tee -a build.log
+          DESTDIR="$PWD/AppDir" cmake --install build 2>&1 | tee -a build.log
+          ls AppDir/usr/bin
+
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: .ccache
+          key: ccache-eglantine-linux-arm64-${{ github.sha }}
+
+      - name: Package AppImage
+        run: |
+          set -e
+          wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-aarch64.AppImage
+          wget -q https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-aarch64.AppImage
+          chmod +x linuxdeploy*.AppImage
+          # The desktop file names the icon dev.eglantine.eglantine, but the installed svg kept Eden's name.
+          mkdir -p AppDir/usr/share/icons/hicolor/scalable/apps
+          cp dist/dev.eden_emu.eden.svg AppDir/usr/share/icons/hicolor/scalable/apps/dev.eglantine.eglantine.svg
+          export QMAKE=/usr/lib/qt6/bin/qmake EXTRA_QT_PLUGINS="waylandcompositor" EXTRA_PLATFORM_PLUGINS="libqwayland-egl.so;libqwayland-generic.so"
+          export OUTPUT=Eglantine-aarch64.AppImage APPIMAGE_EXTRACT_AND_RUN=1
+          desktop=$(ls AppDir/usr/share/applications/*.desktop | head -1)
+          ./linuxdeploy-aarch64.AppImage --appdir AppDir -e AppDir/usr/bin/eglantine \
+            -d "$desktop" -i AppDir/usr/share/icons/hicolor/scalable/apps/dev.eglantine.eglantine.svg \
+            --plugin qt --output appimage
+          ls -la *.AppImage
+
+      - name: Report build errors
+        if: failure()
+        run: |
+          grep -E 'error:|FAILED:|CMake Error|Could not find|No space left|Killed' build.log | head -40 | while read -r l; do echo "::error::${l:0:900}"; done
+          tail -15 build.log | while read -r l; do echo "::warning title=tail::${l:0:900}"; done
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: eglantine-linux-arm64-appimage
+          path: Eglantine-aarch64.AppImage
+          if-no-files-found: error
