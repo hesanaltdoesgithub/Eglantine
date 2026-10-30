@@ -338,6 +338,10 @@
     <string name="frame_gen_quick_description">Turn frame generation on or off and choose the frame multiplier.</string>
     <string name="frame_gen_target_rate_quick_description">Generate frames up to a target frame rate. The multiplier adjusts on its own.</string>
     <string name="frame_gen_flow_scale_quick_description">Resolution used to estimate motion between frames. Lower values save GPU time.</string>
+    <string name="frame_gen_type">Frame generation method</string>
+    <string name="frame_gen_type_description">AMD FSR 3 runs on built-in shaders. Lossless Scaling needs Lossless.dll installed.</string>
+    <string name="frame_gen_type_lsfg" translatable="false">Lossless Scaling</string>
+    <string name="frame_gen_type_fsr3" translatable="false">AMD FSR 3 Fluid Motion</string>
     <string name="frame_gen_queue_target">Frame queue target</string>
     <string name="frame_gen_queue_target_description">How many finished frames may wait ahead of the display. Larger queues absorb GPU spikes at the cost of input latency.</string>
     <string name="frame_gen_queue_target_0">Lowest latency (Unbuffered)</string>

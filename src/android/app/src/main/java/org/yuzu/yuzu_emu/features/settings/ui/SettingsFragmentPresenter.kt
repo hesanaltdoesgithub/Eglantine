@@ -90,7 +90,13 @@ class SettingsFragmentPresenter(
 
     private fun addFrameGenSettings(sl: ArrayList<SettingsItem>) {
         sl.apply {
-            if (!LosslessScalingHelper.isSupportedByGpu()) {
+            add(IntSetting.RENDERER_FRAME_GEN_TYPE.key)
+            val usesFsr3 = LosslessScalingHelper.usesFsr3(
+                getNeedsGlobalForKey(IntSetting.RENDERER_FRAME_GEN_TYPE.key)
+            )
+            if (usesFsr3) {
+                // FSR 3 needs neither Lossless.dll nor the Lossless shader features.
+            } else if (!LosslessScalingHelper.isSupportedByGpu()) {
                 add(
                     RunnableSetting(
                         titleId = R.string.frame_gen_unsupported,

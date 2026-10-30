@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
+import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import java.io.File
 
 object LosslessScalingHelper {
@@ -23,6 +24,15 @@ object LosslessScalingHelper {
     private var gpuSupported: Boolean? = null
 
     fun isInstalled(): Boolean = installed ?: refreshStatus()
+
+    /** FSR 3 frame generation runs on built-in shaders and needs no Lossless.dll. */
+    fun usesFsr3(needsGlobal: Boolean = false): Boolean =
+        IntSetting.RENDERER_FRAME_GEN_TYPE.getInt(needsGlobal) == FRAME_GEN_TYPE_FSR3
+
+    fun isFrameGenAvailable(needsGlobal: Boolean = false): Boolean =
+        usesFsr3(needsGlobal) || (isInstalled() && isSupportedByGpu())
+
+    const val FRAME_GEN_TYPE_FSR3 = 1
 
     fun isSupportedByGpu(): Boolean {
         val cached = gpuSupported

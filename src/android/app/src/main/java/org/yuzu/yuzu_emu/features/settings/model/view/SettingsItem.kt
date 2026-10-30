@@ -68,7 +68,7 @@ abstract class SettingsItem(
             }
 
             if (setting.key in frameGenKeys &&
-                !(LosslessScalingHelper.isInstalled() && LosslessScalingHelper.isSupportedByGpu())
+                !LosslessScalingHelper.isFrameGenAvailable(frameGenTypeNeedsGlobal)
             ) {
                 return false
             }
@@ -102,6 +102,16 @@ abstract class SettingsItem(
 
     val clearable: Boolean
         get() = !setting.global && NativeConfig.isPerGameConfigLoaded()
+
+    private val frameGenTypeNeedsGlobal: Boolean
+        get() {
+            val key = IntSetting.RENDERER_FRAME_GEN_TYPE.key
+            return if (NativeLibrary.isRunning() && !NativeConfig.isPerGameConfigLoaded()) {
+                !NativeConfig.usingGlobal(key)
+            } else {
+                NativeConfig.usingGlobal(key)
+            }
+        }
 
     private val frameGenTargetRate: Int
         get() {
@@ -679,6 +689,15 @@ abstract class SettingsItem(
                     descriptionId = R.string.frame_gen_target_rate_description,
                     choicesId = R.array.frameGenTargetRateNames,
                     valuesId = R.array.frameGenTargetRateValues
+                )
+            )
+            put(
+                SingleChoiceSetting(
+                    IntSetting.RENDERER_FRAME_GEN_TYPE,
+                    titleId = R.string.frame_gen_type,
+                    descriptionId = R.string.frame_gen_type_description,
+                    choicesId = R.array.frameGenTypeNames,
+                    valuesId = R.array.frameGenTypeValues
                 )
             )
             put(
