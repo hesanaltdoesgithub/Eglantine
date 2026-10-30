@@ -291,7 +291,7 @@ object GameHelper {
             val context = YuzuApplication.appContext
             android.widget.Toast.makeText(
                 context,
-                "Allow \"All files access\" for Eden NS2 so it can open extracted Switch 2 games in your game folders",
+                "Allow \"All files access\" for Eglantine so it can open extracted Switch 2 games in your game folders",
                 android.widget.Toast.LENGTH_LONG
             ).show()
             try {
