@@ -1267,6 +1267,11 @@ Result KProcess::LoadFromMetadata(KernelCore& kernel, const FileSys::ProgramMeta
     if (metadata.IsSwitch2()) {
         m_is_switch2 = true;
         m_max_process_memory = m_page_table.GetHeapRegionSize() + m_page_table.GetAliasRegionSize();
+#ifdef __ANDROID__
+        // Handhelds share 12-16 GiB between Android, the GPU and the guest. Report less memory so
+        // the title plans smaller heaps (experimental).
+        m_max_process_memory = (std::min)(m_max_process_memory, size_t{8} << 30);
+#endif
     }
 
     // Set up emulation context.
