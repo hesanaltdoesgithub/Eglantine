@@ -2,7 +2,7 @@ name: Android Eglantine APK
 
 on:
   push:
-    branches: [android-fresh]
+    branches: [android-latest]
     paths-ignore:
       - '.github/workflows/release-binaries.yml'
       - '.github/workflows/linux-arm64.yml'
