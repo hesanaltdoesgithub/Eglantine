@@ -896,6 +896,13 @@ abstract class SettingsItem(
             )
             put(
                 SwitchSetting(
+                    BooleanSetting.MKW_30FPS,
+                    titleId = R.string.mkw_30fps,
+                    descriptionId = R.string.mkw_30fps_description
+                )
+            )
+            put(
+                SwitchSetting(
                     BooleanSetting.ENABLE_BUFFER_HISTORY,
                     titleId = R.string.enable_buffer_history,
                     descriptionId = R.string.enable_buffer_history_description

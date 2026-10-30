@@ -176,6 +176,27 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::KProcess& process, Core::
         std::copy(pi_header.begin() + sizeof(NSOHeader), pi_header.end(), patchable_section.data());
     }
 
+    // Mario Kart World picks how many vblanks each frame lasts (its present interval) from a mode
+    // in its frame loop: 0 = from the frame time, 1 = 60 fps, 2 = 30 fps, and advances its clock by
+    // that many vblanks a frame. Forcing 2 gives a steady 30 fps at normal game speed.
+    if (Settings::values.mkw_30fps.GetValue() && name == "main") {
+        constexpr std::array<u8, 16> MkwBuildId{0x9E, 0x24, 0x44, 0x38, 0xC3, 0xD8, 0xEF, 0x1C,
+                                                0x70, 0x3A, 0x6A, 0x85, 0xEF, 0x99, 0xC4, 0xF0};
+        constexpr size_t ModeLoad = 0x3A9EC8;     // ldr w8, [x19, #0x210]
+        constexpr u32 ModeLoadInsn = 0xB9421268;
+        constexpr u32 Force30Insn = 0x52800048;   // mov w8, #2
+        u8* const code = codeset.memory.data() + module_start;
+        u32 insn{};
+        if (std::equal(MkwBuildId.begin(), MkwBuildId.end(), nso_header.build_id.begin()) &&
+            module_start + ModeLoad + sizeof(insn) <= codeset.memory.size()) {
+            std::memcpy(&insn, code + ModeLoad, sizeof(insn));
+            if (insn == ModeLoadInsn) {
+                std::memcpy(code + ModeLoad, &Force30Insn, sizeof(Force30Insn));
+                LOG_INFO(Loader, "Mario Kart World: 30 FPS mode on");
+            }
+        }
+    }
+
 #ifdef HAS_NCE
     // If we are computing the process code layout and using nce backend, patch.
     const auto& code = codeset.CodeSegment();

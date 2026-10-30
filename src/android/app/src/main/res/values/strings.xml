@@ -581,6 +581,8 @@
     <string name="renderer_asynchronous_gpu_emulation">GPU async emulation</string>
     <string name="renderer_asynchronous_gpu_emulation_description">This hack can increase performance by running GPU emulation asynchronously at the cost of graphical issues and increased crash rates by timing-related operations.</string>
     <string name="renderer_reactive_flushing">Use reactive flushing</string>
+    <string name="mkw_30fps">Mario Kart World: 30 FPS mode</string>
+    <string name="mkw_30fps_description">Keeps Mario Kart World in its own 30 FPS mode: steady 30 fps at normal game speed. Takes effect at the next game launch.</string>
     <string name="renderer_reactive_flushing_description">Improves rendering accuracy in some games at the cost of performance.</string>
     <string name="enable_buffer_history">Enable buffer history</string>
     <string name="enable_buffer_history_description">Enables access to previous buffer states. This option may improve rendering quality and performance consistency in some games.</string>
